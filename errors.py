@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -11,6 +12,9 @@ class Error(Exception):
     """
     status: int
     error: str
+    detail: Optional[str] = None
+
+    
 
 
 class Errors:
@@ -19,7 +23,7 @@ class Errors:
     """
     
     @staticmethod
-    def handle_error(error: str, status_code: int) -> Error:
+    def handle_error(error: str, status_code: int, error_detail: Optional[str] = None) -> Error:
         """
         Creates an Error object with the provided error message and status code.
         
@@ -32,5 +36,6 @@ class Errors:
         """
         return Error(
             status=status_code,
-            error=error
+            error=error,
+            detail=error_detail
         )

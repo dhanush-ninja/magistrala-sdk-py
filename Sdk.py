@@ -8,7 +8,7 @@ from .groups import Groups
 from .channels import Channels
 from .messages import Messages
 from .bootstrap import Bootstrap
-from .journal import Journal
+from .journals import Journals
 from .health import Health
 from .clients import Clients
 from .rules import Rules
@@ -17,7 +17,7 @@ from .alarms import Alarms
 from .reports import Reports
 
 # Import all type definitions
-# from .defs import *
+from .defs import *
 
 DEFAULT_URL = "http://localhost"
 
@@ -87,7 +87,7 @@ class SDK:
             http_adapter_url=self.http_adapter_url
         )
         self.bootstrap = Bootstrap(bootstrap_url=self.bootstrap_url)
-        self.journal = Journal(journal_url=self.journal_url)
+        self.journals = Journals(journal_url=self.journal_url)
         self.health = Health(
             users_url=self.users_url,
             clients_url=self.clients_url,

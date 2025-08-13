@@ -9,7 +9,7 @@ from .defs import ClientTelemetry, JournalsPage, JournalsPageMetadata
 from .errors import Errors
 
 
-class Journal:
+class Journals:
     """
     Handles interactions with Journal API.
     """

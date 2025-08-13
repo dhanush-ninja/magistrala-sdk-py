@@ -17,7 +17,7 @@ class UserBasicInfo:
 
 @dataclass
 class User(UserBasicInfo):
-    role: Optional[str] = None
+    role: Optional[str] = 'user'
     tags: Optional[List[str]] = None
     metadata: Optional[Dict[str, Any]] = None
     created_at: Optional[datetime] = None

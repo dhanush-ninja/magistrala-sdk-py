@@ -4,9 +4,9 @@
 import json
 from typing import Optional
 from urllib.parse import urljoin, urlencode
-
+from dataclasses import asdict
 import requests
-
+from datetime import datetime, timezone
 from .errors import Errors
 from .defs import (
     User,
@@ -61,19 +61,16 @@ class Users:
             headers["Authorization"] = f"Bearer {token}"
 
         url = urljoin(self.users_url + '/', self.users_endpoint)
-        
         try:
             response = requests.post(
                 url,
                 headers=headers,
-                data=json.dumps(user.dict() if hasattr(user, 'dict') else user),
+                data=json.dumps(asdict(user)),
                 timeout=30
             )
-            
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             return User(**response.json())
         except requests.RequestException as error:
             raise error
