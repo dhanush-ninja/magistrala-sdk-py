@@ -1,10 +1,8 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
 from urllib.parse import urljoin, urlencode
-
+from dataclasses import asdict
 import requests
 
 from .errors import Errors
@@ -40,7 +38,7 @@ class Clients:
         self.clients_endpoint = "clients"
         self.client_roles = Roles()
 
-    def create_client(self, client: Client, domain_id: str, token: str) -> Client:
+    def create_client(self, client: Client, token: str) -> dict:
         """
         Creates a new client.
         
@@ -60,27 +58,26 @@ class Clients:
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.clients_url + '/', f"{domain_id}/{self.clients_endpoint}")
+        url = urljoin(self.clients_url + '/', f"{client.domain_id}/{self.clients_endpoint}")
         
         try:
             response = requests.post(
                 url,
                 headers=headers,
-                data=json.dumps(client.dict() if hasattr(client, 'dict') else client),
+                data=json.dumps(asdict(client)),
                 timeout=30
             )
-            
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Client(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def create_clients(
         self, clients: List[Client], domain_id: str, token: str
-    ) -> ClientsPage:
+    ) -> dict:
         """
         Creates multiple new clients.
         
@@ -117,13 +114,13 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ClientsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def enable(self, client_id: str, domain_id: str, token: str) -> Client:
+    def enable(self, client_id: str, domain_id: str, token: str) -> dict:
         """
         Enables a previously disabled client by its ID.
         
@@ -153,13 +150,13 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Client(**response.json())
         except requests.RequestException as error:
             raise error
 
-    def disable(self, client_id: str, domain_id: str, token: str) -> Client:
+    def disable(self, client_id: str, domain_id: str, token: str) -> dict:
         """
         Disables an enabled client by its ID.
         
@@ -189,13 +186,13 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Client(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_client(self, client: Client, domain_id: str, token: str) -> Client:
+    def update_client(self, client: Client, token: str) -> dict:
         """
         Updates the information of an existing client.
         
@@ -217,28 +214,28 @@ class Clients:
 
         url = urljoin(
             self.clients_url + '/',
-            f"{domain_id}/{self.clients_endpoint}/{client.id}"
+            f"{client.domain_id}/{self.clients_endpoint}/{client.id}"
         )
         
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(client.dict() if hasattr(client, 'dict') else client),
+                data=json.dumps(asdict(client)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Client(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_client_secret(
         self, client: Client, domain_id: str, token: str
-    ) -> Client:
+    ) -> dict:
         """
         Updates an existing client's secret.
         
@@ -274,15 +271,15 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Client(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_client_tags(
-        self, client: Client, domain_id: str, token: str
-    ) -> Client:
+        self, client: Client, token: str
+    ) -> dict:
         """
         Updates an existing client's tags.
         
@@ -304,22 +301,22 @@ class Clients:
 
         url = urljoin(
             self.clients_url + '/',
-            f"{domain_id}/{self.clients_endpoint}/{client.id}/tags"
+            f"{client.domain_id}/{self.clients_endpoint}/{client.id}/tags"
         )
         
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(client.dict() if hasattr(client, 'dict') else client),
+                data=json.dumps({"tags": client.tags}),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Client(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -329,7 +326,7 @@ class Clients:
         domain_id: str,
         token: str,
         list_roles: Optional[bool] = None
-    ) -> Client:
+    ) -> dict:
         """
         Retrieves a client by its id.
         
@@ -363,15 +360,13 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Client(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def clients(
-        self, query_params: PageMetadata, domain_id: str, token: str
-    ) -> ClientsPage:
+    def clients(self, domain_id: str, limit: int, offset: int, token: str) -> dict:
         """
         Retrieves all clients matching the provided query parameters.
         
@@ -386,9 +381,6 @@ class Clients:
         Raises:
             Exception: If the clients cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
 
         headers = {
             "Content-Type": self.content_type,
@@ -397,7 +389,7 @@ class Clients:
 
         url = urljoin(
             self.clients_url + '/',
-            f"{domain_id}/{self.clients_endpoint}?{urlencode(string_params)}"
+            f"{domain_id}/{self.clients_endpoint}?limit={limit}&offset={offset}"
         )
         
         try:
@@ -405,9 +397,47 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ClientsPage(**response.json())
+            return response.json()
+        except requests.RequestException as error:
+            raise error
+
+
+    def list_user_clients(self, domain_id: str, user_id: str, limit: int, offset: int, token: str) -> dict:
+        """
+        Get memberships of a user.
+        
+        Args:
+            user_id: The unique identifier of the member.
+            domain_id: The unique identifier of the domain.
+            query_params: Query parameters for example offset and limit.
+            token: Authorization token.
+            
+        Returns:
+            A page of clients.
+            
+        Raises:
+            Exception: If the clients cannot be fetched.
+        """
+        headers = {
+            "Content-Type": self.content_type,
+            "Authorization": f"Bearer {token}",
+        }
+
+        url = urljoin(
+            self.clients_url + '/',
+            f"{domain_id}/{self.clients_endpoint}?user={user_id}&offset={offset}&limit={limit}"
+        )
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if not response.ok:
+                error_res = response.json()
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -449,7 +479,7 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -490,7 +520,7 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -529,7 +559,7 @@ class Clients:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -538,7 +568,7 @@ class Clients:
         except requests.RequestException as error:
             raise error
 
-    def list_client_actions(self, domain_id: str, token: str) -> List[str]:
+    def list_client_actions(self, domain_id: str, token: str) -> dict:
         """
         Lists all actions available to a specific client.
         
@@ -570,7 +600,7 @@ class Clients:
         token: str,
         optional_actions: Optional[List[str]] = None,
         optional_members: Optional[List[str]] = None
-    ) -> Role:
+    ) -> dict:
         """
         Creates a new role within a specific client.
         
@@ -604,7 +634,7 @@ class Clients:
 
     def list_client_roles(
         self, client_id: str, domain_id: str, query_params: PageMetadata, token: str
-    ) -> RolePage:
+    ) -> dict:
         """
         Lists all roles within a specific client.
         
@@ -634,7 +664,7 @@ class Clients:
 
     def view_client_role(
         self, client_id: str, domain_id: str, role_id: str, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Retrieves details about a specific role in a client.
         
@@ -664,7 +694,7 @@ class Clients:
 
     def update_client_role(
         self, client_id: str, domain_id: str, role_id: str, role: Role, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Updates the details of a specific role in a client.
         
@@ -726,7 +756,7 @@ class Clients:
 
     def add_client_role_actions(
         self, client_id: str, domain_id: str, role_id: str, actions: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds actions to a specific role in a client.
         
@@ -758,7 +788,7 @@ class Clients:
 
     def list_client_role_actions(
         self, client_id: str, domain_id: str, role_id: str, token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Lists all actions associated with a specific role in a client.
         
@@ -850,7 +880,7 @@ class Clients:
 
     def add_client_role_members(
         self, client_id: str, domain_id: str, role_id: str, members: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds members to a specific role in a client.
         
@@ -887,7 +917,7 @@ class Clients:
         role_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MembersPage:
+    ) -> dict:
         """
         Lists all members associated with a specific role in a client.
         
@@ -984,7 +1014,7 @@ class Clients:
         domain_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MemberRolesPage:
+    ) -> dict:
         """
         Lists all members associated with a client.
         

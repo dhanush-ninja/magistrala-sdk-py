@@ -1,12 +1,10 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 from urllib.parse import urljoin, urlencode
 
 import requests
 
 from .defs import ClientTelemetry, JournalsPage, JournalsPageMetadata
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class Journals:
@@ -32,7 +30,7 @@ class Journals:
         domain_id: str,
         query_params: JournalsPageMetadata,
         token: str
-    ) -> JournalsPage:
+    ) -> dict:
         """
         Retrieve entity journals by entity id matching the provided query parameters.
         
@@ -69,9 +67,9 @@ class Journals:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return JournalsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -80,7 +78,7 @@ class Journals:
         user_id: str,
         query_params: JournalsPageMetadata,
         token: str
-    ) -> JournalsPage:
+    ) -> dict:
         """
         Retrieve user journals by user id matching the provided query parameters.
         
@@ -115,15 +113,15 @@ class Journals:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return JournalsPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def client_telemetry(
         self, client_id: str, domain_id: str, token: str
-    ) -> ClientTelemetry:
+    ) -> dict:
         """
         Retrieves client telemetry.
         
@@ -153,8 +151,8 @@ class Journals:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ClientTelemetry(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error

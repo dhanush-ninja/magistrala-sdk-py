@@ -1,13 +1,11 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
 from urllib.parse import urljoin, urlencode
-
+from dataclasses import asdict
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import (
     Domain,
     PageMetadata,
@@ -44,7 +42,7 @@ class Domains:
         self.invitations_endpoint = "invitations"
         self.domain_roles = Roles()
 
-    def create_domain(self, domain: Domain, token: str) -> Domain:
+    def create_domain(self, domain: Domain, token: str) -> dict:
         """
         Creates a new domain.
         
@@ -69,19 +67,19 @@ class Domains:
             response = requests.post(
                 url,
                 headers=headers,
-                data=json.dumps(domain.dict() if hasattr(domain, 'dict') else domain),
+                data=json.dumps(asdict(domain)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Domain(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_domain(self, domain: Domain, token: str) -> Domain:
+    def update_domain(self, domain: Domain, token: str) -> dict:
         """
         Updates an existing domain's details.
         
@@ -106,21 +104,19 @@ class Domains:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(domain.dict() if hasattr(domain, 'dict') else domain),
+                data=json.dumps(asdict(domain)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Domain(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def domain(
-        self, domain_id: str, token: str, list_roles: Optional[bool] = None
-    ) -> Domain:
+    def domain(self, domain_id: str, token: str, list_roles: Optional[bool] = None) -> dict:
         """
         Retrieves a domain by its ID.
         
@@ -150,13 +146,13 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Domain(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def domains(self, query_params: PageMetadata, token: str) -> DomainsPage:
+    def domains(self, token: str, limit: int, offset: int) -> dict:
         """
         Retrieves all domains matching the provided query parameters.
         
@@ -170,17 +166,13 @@ class Domains:
         Raises:
             Exception: If the domains cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
-
         headers = {
             "Content-Type": self.content_type,
             "Authorization": f"Bearer {token}",
         }
 
         url = urljoin(
-            self.domains_url + '/', f"{self.domains_endpoint}?{urlencode(string_params)}"
+            self.domains_url + '/', f"{self.domains_endpoint}?limit={limit}&offset={offset}"
         )
         
         try:
@@ -188,15 +180,15 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return DomainsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_user_domains(
         self, user_id: str, query_params: PageMetadata, token: str
-    ) -> DomainsPage:
+    ) -> dict:
         """
         Retrieves all domains associated with a specific user.
         
@@ -230,9 +222,9 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return DomainsPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -264,7 +256,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -301,7 +293,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -338,7 +330,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -347,7 +339,7 @@ class Domains:
         except requests.RequestException as error:
             raise error
 
-    def list_domain_actions(self, token: str) -> List[str]:
+    def list_domain_actions(self, token: str) -> dict:
         """
         Lists all actions available in a specific domain.
         
@@ -377,7 +369,7 @@ class Domains:
         token: str,
         optional_actions: Optional[List[str]] = None,
         optional_members: Optional[List[str]] = None
-    ) -> Role:
+    ) -> dict:
         """
         Creates a new role within a specific domain.
         
@@ -409,8 +401,7 @@ class Domains:
             raise error
 
     def list_domain_roles(
-        self, domain_id: str, query_params: PageMetadata, token: str
-    ) -> RolePage:
+        self, domain_id: str, token: str) -> dict:
         """
         Lists all roles within a specific domain.
         
@@ -430,14 +421,13 @@ class Domains:
                 self.domains_url,
                 self.domains_endpoint,
                 domain_id,
-                query_params,
                 token
             )
             return roles_page
         except Exception as error:
             raise error
 
-    def view_domain_role(self, domain_id: str, role_id: str, token: str) -> Role:
+    def view_domain_role(self, domain_id: str, role_id: str, token: str) -> dict:
         """
         Retrieves details about a specific role in a domain.
         
@@ -466,7 +456,7 @@ class Domains:
 
     def update_domain_role(
         self, domain_id: str, role_id: str, role: Role, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Updates the details of a specific role in a domain.
         
@@ -524,7 +514,7 @@ class Domains:
 
     def add_domain_role_actions(
         self, domain_id: str, role_id: str, actions: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds actions to a specific role in a domain.
         
@@ -555,7 +545,7 @@ class Domains:
 
     def list_domain_role_actions(
         self, domain_id: str, role_id: str, token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Lists all actions associated with a specific role in a domain.
         
@@ -643,8 +633,7 @@ class Domains:
             raise error
 
     def add_domain_role_members(
-        self, domain_id: str, role_id: str, members: List[str], token: str
-    ) -> List[str]:
+        self, domain_id: str, role_id: str, members: List[str], token: str) -> dict:
         """
         Adds members to a specific role in a domain.
         
@@ -675,7 +664,7 @@ class Domains:
 
     def list_domain_role_members(
         self, domain_id: str, role_id: str, query_params: BasicPageMeta, token: str
-    ) -> MembersPage:
+    ) -> dict:
         """
         Lists all members associated with a specific role in a domain.
         
@@ -763,9 +752,7 @@ class Domains:
         except Exception as error:
             raise error
 
-    def list_domain_members(
-        self, domain_id: str, query_params: BasicPageMeta, token: str
-    ) -> MemberRolesPage:
+    def list_domain_members(self, domain_id: str, token: str) -> dict:
         """
         Lists all members associated with a domain.
         
@@ -784,7 +771,6 @@ class Domains:
                 self.domains_url,
                 self.domains_endpoint,
                 domain_id,
-                query_params,
                 token
             )
             return members
@@ -843,7 +829,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -852,7 +838,7 @@ class Domains:
         except requests.RequestException as error:
             raise error
 
-    def view_invitation(self, user_id: str, domain_id: str, token: str) -> Invitation:
+    def view_invitation(self, user_id: str, domain_id: str, token: str) -> dict:
         """
         Retrieves the invitation for the given user to a given domain.
         
@@ -882,15 +868,15 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Invitation(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_domain_invitations(
         self, query_params: InvitationPageMeta, domain_id: str, token: str
-    ) -> InvitationsPage:
+    ) -> dict:
         """
         Retrieves all domain invitations matching the provided query parameters.
         
@@ -924,15 +910,15 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return InvitationsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_user_invitations(
         self, query_params: PageMetadata, token: str
-    ) -> InvitationsPage:
+    ) -> dict:
         """
         Retrieves all user invitations matching the provided query parameters.
         
@@ -965,9 +951,9 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return InvitationsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -1002,7 +988,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -1042,7 +1028,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -1073,7 +1059,7 @@ class Domains:
 
         url = urljoin(
             self.domains_url + '/',
-            f"{self.domains_endpoint}/{domain_id}/{self.invitations_endpoint}/{user_id}"
+            f"{self.domains_endpoint}/{domain_id}/{self.invitations_endpoint}"
         )
         
         try:
@@ -1081,7 +1067,7 @@ class Domains:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,

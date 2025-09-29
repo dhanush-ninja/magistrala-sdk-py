@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import Optional
@@ -7,7 +5,7 @@ from urllib.parse import urljoin, urlencode
 from dataclasses import asdict
 import requests
 from datetime import datetime, timezone
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import (
     User,
     UsersPage,
@@ -40,7 +38,7 @@ class Users:
         self.users_endpoint = "users"
         self.search_endpoint = "search"
 
-    def create(self, user: User, token: Optional[str] = None) -> User:
+    def create(self, user: User, token: Optional[str] = None) -> dict:
         """
         Creates a new user.
         
@@ -71,11 +69,11 @@ class Users:
             if not response.ok:
                 error_res = response.json()
                 raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def create_token(self, login: Login) -> Token:
+    def create_token(self, login: Login) -> dict:
         """
         Issue Access and Refresh Token used for authenticating into the system. 
         A user can use either their email or username to login.
@@ -106,13 +104,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Token(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def refresh_token(self, refresh_token: str) -> Token:
+    def refresh_token(self, refresh_token: str) -> dict:
         """
         Provides a new access token and refresh token.
         
@@ -137,15 +135,15 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Token(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update(self, user: User, token: str) -> User:
+    def update(self, user_id:str, user: User, token: str) -> dict:
         """
-        Updates a user's firstName, lastName and metadata.
+        Updates a user's information.
         
         Args:
             user: User object.
@@ -162,25 +160,25 @@ class Users:
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user.id}")
+        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user_id}")
         
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(user.dict() if hasattr(user, 'dict') else user),
+                data=json.dumps(asdict(user)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_email(self, user: User, token: str) -> User:
+    def update_email(self, user_id, email: str, updated_by: str, updated_at: str, token: str) -> dict:
         """
         Update a user email for a currently logged in user.
         
@@ -199,25 +197,28 @@ class Users:
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user.id}/email")
-        
+        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user_id}/email")
+
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps({"email": user.email}),
+                data=json.dumps({"email": email, "updated_by": updated_by, "updated_at": updated_at}),
                 timeout=30
             )
-            
             if not response.ok:
-                error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return User(**response.json())
+                try:
+                    # TODO: need to raise a issue in magistrala because its not valid json response for error
+                    error_res = response.json()
+                    raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+                except ValueError:
+                        return
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_username(self, user: User, token: str) -> User:
+    def update_username(self, user_id, username: str, updated_by: str, updated_at: str, token: str) -> dict:
         """
         Updates a user's username.
         
@@ -236,26 +237,25 @@ class Users:
             "Authorization": f"Bearer {token}",
         }
 
-        username = user.credentials.username if user.credentials else None
-        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user.id}/username")
+        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user_id}/username")
         
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps({"username": username}),
+                data=json.dumps({"username": username, "updated_by": updated_by, "updated_at": updated_at}),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_profile_picture(self, user: User, token: str) -> User:
+    def update_profile_picture(self, user: User, token: str) -> dict:
         """
         Updates the profile picture of a user.
         
@@ -286,13 +286,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_user_tags(self, user: User, token: str) -> User:
+    def update_user_tags(self,user_id: str, tags: list, updated_at: str, updated_by: str, token: str) -> dict:
         """
         Update a user's tags.
         
@@ -311,25 +311,24 @@ class Users:
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user.id}/tags")
-        
+        url = urljoin(self.users_url + '/', f"{self.users_endpoint}/{user_id}/tags")
+
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(user.dict() if hasattr(user, 'dict') else user),
+                data=json.dumps({"tags": tags, "updated_by": updated_by, "updated_at": updated_at}),
                 timeout=30
             )
-            
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_user_password(self, old_secret: str, new_secret: str, token: str) -> User:
+    def update_user_password(self, old_secret: str, new_secret: str, token: str) -> dict:
         """
         Update a user's password.
         
@@ -361,13 +360,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return User(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_user_role(self, user: User, token: str) -> User:
+    def update_user_role(self, user: User, token: str) -> dict:
         """
         Update a user's role.
         
@@ -398,13 +397,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return User(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def user(self, user_id: str, token: str) -> User:
+    def user(self, user_id: str, token: str) -> dict:
         """
         Gets a user.
         
@@ -430,13 +429,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def user_profile(self, token: str) -> User:
+    def user_profile(self, token: str) -> dict:
         """
         Gets a user's Profile.
         
@@ -461,13 +460,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return User(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def users(self, query_params: PageMetadata, token: str) -> UsersPage:
+    def users(self, token: str, limit: int, offset: int, tag: str, metadata: str, username: Optional[str] = None, email: Optional[str] = None) -> dict:
         """
         Retrieves all users matching the provided query parameters.
         
@@ -481,29 +480,24 @@ class Users:
         Raises:
             Exception: If the users cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
-
         headers = {
             "Content-Type": self.content_type,
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.users_url + '/', f"{self.users_endpoint}?{urlencode(string_params)}")
-        
+
+        url = urljoin(self.users_url + '/', f"{self.users_endpoint}?{urlencode({'limit': limit, 'offset': offset, 'tag': tag, 'metadata': metadata, 'username': username, 'email': email})}")
         try:
             response = requests.get(url, headers=headers, timeout=30)
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return UsersPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def disable(self, user_id: str, token: str) -> User:
+    def disable(self, user_id: str, token: str) -> dict:
         """
         Disable a user.
         
@@ -529,13 +523,13 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return User(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def enable(self, user_id: str, token: str) -> User:
+    def enable(self, user_id: str, token: str) -> dict:
         """
         Enable a user.
         
@@ -561,15 +555,15 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return User(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_user_groups(
         self, domain_id: str, user_id: str, query_params: PageMetadata, token: str
-    ) -> GroupsPage:
+    ) -> dict:
         """
         Get memberships of a user.
         
@@ -604,58 +598,17 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return GroupsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def list_user_clients(
-        self, user_id: str, domain_id: str, query_params: PageMetadata, token: str
-    ) -> ClientsPage:
-        """
-        Get memberships of a user.
-        
-        Args:
-            user_id: The unique identifier of the member.
-            domain_id: The unique identifier of the domain.
-            query_params: Query parameters for example offset and limit.
-            token: Authorization token.
-            
-        Returns:
-            A page of clients.
-            
-        Raises:
-            Exception: If the clients cannot be fetched.
-        """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
-
-        headers = {
-            "Content-Type": self.content_type,
-            "Authorization": f"Bearer {token}",
-        }
-
-        url = urljoin(
-            self.clients_url + '/',
-            f"{domain_id}/{self.users_endpoint}/{user_id}/clients?{urlencode(string_params)}"
-        )
-        
-        try:
-            response = requests.get(url, headers=headers, timeout=30)
-            
-            if not response.ok:
-                error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ClientsPage(**response.json())
-        except requests.RequestException as error:
-            raise error
+    
 
     def list_user_channels(
         self, domain_id: str, user_id: str, query_params: PageMetadata, token: str
-    ) -> ChannelsPage:
+    ) -> dict:
         """
         Retrieves the various channels a user owns.
         
@@ -690,9 +643,9 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ChannelsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -727,7 +680,7 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -768,7 +721,7 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -802,7 +755,7 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -811,7 +764,7 @@ class Users:
         except requests.RequestException as error:
             raise error
 
-    def search_users(self, query_params: PageMetadata, token: str) -> UsersPage:
+    def search_users(self, username: str,  limit: int, offset: int, token: str) -> dict:
         """
         Search for users.
         
@@ -825,9 +778,6 @@ class Users:
         Raises:
             Exception: If the users cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
 
         headers = {
             "Content-Type": self.content_type,
@@ -836,7 +786,7 @@ class Users:
 
         url = urljoin(
             self.users_url + '/',
-            f"{self.users_endpoint}/{self.search_endpoint}?{urlencode(string_params)}"
+            f"{self.users_endpoint}/{self.search_endpoint}?username={username}&limit={limit}&offset={offset}"
         )
         
         try:
@@ -844,8 +794,8 @@ class Users:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return UsersPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error

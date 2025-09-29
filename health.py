@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 from typing import Optional
 from urllib.parse import urljoin
@@ -7,7 +5,7 @@ from urllib.parse import urljoin
 import requests
 
 from .defs import HealthInfo
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class Health:
@@ -61,7 +59,7 @@ class Health:
         self.auth_url = auth_url.rstrip('/') if auth_url else None
         self.health_endpoint = "health"
 
-    def health(self, service: str) -> HealthInfo:
+    def health(self, service: str) -> dict:
         """
         Checks the health status of a specified service.
         
@@ -106,8 +104,8 @@ class Health:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return HealthInfo(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error

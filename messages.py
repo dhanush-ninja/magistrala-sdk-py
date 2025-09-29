@@ -1,12 +1,10 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from urllib.parse import urljoin, urlencode
 
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import Response, MessagesPage, MessagesPageMetadata
 
 
@@ -67,7 +65,7 @@ class Messages:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -82,7 +80,7 @@ class Messages:
         channel_id: str,
         pm: MessagesPageMetadata,
         token: str
-    ) -> MessagesPage:
+    ) -> dict:
         """
         Read messages from a given channel.
         
@@ -125,8 +123,8 @@ class Messages:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return MessagesPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error

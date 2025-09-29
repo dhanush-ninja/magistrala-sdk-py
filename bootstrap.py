@@ -1,6 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
-
 import json
 import os
 from typing import List
@@ -10,7 +7,7 @@ from cryptography.hazmat.backends import default_backend
 
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import PageMetadata, BootstrapConfig, BootstrapPage, Response
 
 
@@ -69,7 +66,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -115,7 +112,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -161,7 +158,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -172,7 +169,7 @@ class Bootstrap:
 
     def view_bootstrap(
         self, client_id: str, domain_id: str, token: str
-    ) -> BootstrapConfig:
+    ) -> dict:
         """
         Retrieves a bootstrap config by its ID.
         
@@ -202,15 +199,15 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return BootstrapConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_bootstrap_certs(
         self, bootstrap_config: BootstrapConfig, domain_id: str, token: str
-    ) -> BootstrapConfig:
+    ) -> dict:
         """
         Updates the details of a specific role in a domain.
         
@@ -245,9 +242,9 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return BootstrapConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -283,7 +280,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -292,7 +289,7 @@ class Bootstrap:
         except requests.RequestException as error:
             raise error
 
-    def bootstrap(self, external_id: str, external_key: str) -> BootstrapConfig:
+    def bootstrap(self, external_id: str, external_key: str) -> dict:
         """
         Retrieves a configuration with given external ID and encrypted external key.
         
@@ -321,15 +318,15 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return BootstrapConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def bootstraps(
         self, query_params: PageMetadata, domain_id: str, token: str
-    ) -> BootstrapPage:
+    ) -> dict:
         """
         Retrieves all bootstrap configuration matching the provided query parameters.
         
@@ -364,9 +361,9 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return BootstrapPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -408,7 +405,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -419,7 +416,7 @@ class Bootstrap:
 
     def secure_bootstrap(
         self, external_id: str, external_key: str, crypto_key: str
-    ) -> BootstrapConfig:
+    ) -> dict:
         """
         Secures a bootstrap configuration by encrypting it.
         
@@ -451,7 +448,7 @@ class Bootstrap:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             # Decrypt the response
             encrypted_response = response.text
@@ -492,7 +489,7 @@ class Bootstrap:
         return encrypted_data.hex()
 
     @staticmethod
-    def bootstrap_decrypt(encrypted_data: str, crypto_key: str) -> BootstrapConfig:
+    def bootstrap_decrypt(encrypted_data: str, crypto_key: str) -> dict:
         """
         Decrypts encrypted data using AES-256-CFB decryption.
         
@@ -523,4 +520,4 @@ class Bootstrap:
         
         # Parse JSON and return BootstrapConfig
         decrypted_text = decrypted.decode('utf-8')
-        return BootstrapConfig(**json.loads(decrypted_text))
+        return json.loads(decrypted_text)

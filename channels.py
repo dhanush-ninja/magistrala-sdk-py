@@ -1,13 +1,11 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
 from urllib.parse import urljoin, urlencode
-
+from dataclasses import asdict
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import (
     Channel,
     PageMetadata,
@@ -40,7 +38,7 @@ class Channels:
         self.channels_endpoint = "channels"
         self.channel_roles = Roles()
 
-    def create_channel(self, channel: Channel, domain_id: str, token: str) -> Channel:
+    def create_channel(self, channel: Channel, token: str) -> dict:
         """
         Creates a new channel.
         
@@ -60,31 +58,25 @@ class Channels:
             "Authorization": f"Bearer {token}",
         }
 
-        url = urljoin(self.channels_url + '/', f"{domain_id}/{self.channels_endpoint}")
+        url = urljoin(self.channels_url + '/', f"{channel.domain_id}/{self.channels_endpoint}")
         
         try:
             response = requests.post(
                 url,
                 headers=headers,
-                data=json.dumps(channel.dict() if hasattr(channel, 'dict') else channel),
+                data=json.dumps(asdict(channel)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def channel(
-        self,
-        channel_id: str,
-        domain_id: str,
-        token: str,
-        list_roles: Optional[bool] = None
-    ) -> Channel:
+    def channel(self, channel_id: str, domain_id: str, token: str, list_roles: Optional[bool] = None) -> dict:
         """
         Retrieves a channel by its id.
         
@@ -115,15 +107,15 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def create_channels(
         self, channels: List[Channel], domain_id: str, token: str
-    ) -> ChannelsPage:
+    ) -> dict:
         """
         Creates multiple new channels.
         
@@ -160,15 +152,13 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ChannelsPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def channels(
-        self, query_params: PageMetadata, domain_id: str, token: str
-    ) -> ChannelsPage:
+    def channels(self,  domain_id: str, limit: int, offset: int, token: str) -> dict:
         """
         Retrieves all channels matching the provided query parameters.
         
@@ -183,9 +173,6 @@ class Channels:
         Raises:
             Exception: If the channels cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.items() if value is not None
-        }
 
         headers = {
             "Content-Type": self.content_type,
@@ -194,7 +181,7 @@ class Channels:
 
         url = urljoin(
             self.channels_url + '/',
-            f"{domain_id}/{self.channels_endpoint}?{urlencode(string_params)}"
+            f"{domain_id}/{self.channels_endpoint}?limit={limit}&offset={offset}"
         )
         
         try:
@@ -202,15 +189,15 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ChannelsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_channel_name_and_metadata(
-        self, channel: Channel, domain_id: str, token: str
-    ) -> Channel:
+    def update_channel(
+        self, channel: Channel, token: str
+    ) -> dict:
         """
         Updates an existing channel's metadata and name.
         
@@ -232,28 +219,28 @@ class Channels:
 
         url = urljoin(
             self.channels_url + '/',
-            f"{domain_id}/{self.channels_endpoint}/{channel.id}"
+            f"{channel.domain_id}/{self.channels_endpoint}/{channel.id}"
         )
         
         try:
             response = requests.patch(
                 url,
                 headers=headers,
-                data=json.dumps(channel.dict() if hasattr(channel, 'dict') else channel),
+                data=json.dumps(asdict(channel)),
                 timeout=30
             )
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_channel_tags(
         self, channel: Channel, domain_id: str, token: str
-    ) -> Channel:
+    ) -> dict:
         """
         Updates an existing channel's tags.
         
@@ -288,13 +275,13 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def disable_channel(self, channel_id: str, domain_id: str, token: str) -> Channel:
+    def disable_channel(self, channel_id: str, domain_id: str, token: str) -> dict:
         """
         Disables a specific channel.
         
@@ -324,13 +311,13 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def enable_channel(self, channel_id: str, domain_id: str, token: str) -> Channel:
+    def enable_channel(self, channel_id: str, domain_id: str, token: str) -> dict:
         """
         Enables a previously disabled channel.
         
@@ -360,9 +347,9 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Channel(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -396,7 +383,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -455,7 +442,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -514,7 +501,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -573,7 +560,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -632,7 +619,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -679,7 +666,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -720,7 +707,7 @@ class Channels:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -729,7 +716,7 @@ class Channels:
         except requests.RequestException as error:
             raise error
 
-    def list_channel_actions(self, domain_id: str, token: str) -> List[str]:
+    def list_channel_actions(self, domain_id: str, token: str) -> dict:
         """
         Lists all actions available to a specific channel.
         
@@ -795,7 +782,7 @@ class Channels:
 
     def list_channel_roles(
         self, channel_id: str, domain_id: str, query_params: PageMetadata, token: str
-    ) -> RolePage:
+    ) -> dict:
         """
         Lists all roles within a specific channel.
         
@@ -825,7 +812,7 @@ class Channels:
 
     def view_channel_role(
         self, channel_id: str, domain_id: str, role_id: str, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Retrieves details about a specific role in a channel.
         
@@ -855,7 +842,7 @@ class Channels:
 
     def update_channel_role(
         self, channel_id: str, domain_id: str, role_id: str, role: Role, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Updates the details of a specific role in a channel.
         
@@ -949,7 +936,7 @@ class Channels:
 
     def list_channel_role_actions(
         self, channel_id: str, domain_id: str, role_id: str, token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Lists all actions associated with a specific role in a channel.
         
@@ -1041,7 +1028,7 @@ class Channels:
 
     def add_channel_role_members(
         self, channel_id: str, domain_id: str, role_id: str, members: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds members to a specific role in a channel.
         
@@ -1078,7 +1065,7 @@ class Channels:
         role_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MembersPage:
+    ) -> dict:
         """
         Lists all members associated with a specific role in a channel.
         
@@ -1175,7 +1162,7 @@ class Channels:
         domain_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MemberRolesPage:
+    ) -> dict:
         """
         Lists all members associated with a channel.
         

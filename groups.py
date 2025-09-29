@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
@@ -7,7 +5,7 @@ from urllib.parse import urljoin, urlencode
 
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import (
     Group,
     GroupsPage,
@@ -42,7 +40,7 @@ class Groups:
         self.groups_endpoint = "groups"
         self.group_roles = Roles()
 
-    def create_group(self, group: Group, domain_id: str, token: str) -> Group:
+    def create_group(self, group: Group, domain_id: str, token: str) -> dict:
         """
         Creates a new group once the user is authenticated and a valid token is provided. 
         The group's parent or child status in the hierarchy can also be established.
@@ -75,9 +73,9 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Group(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -87,7 +85,7 @@ class Groups:
         domain_id: str,
         token: str,
         list_roles: Optional[bool] = None
-    ) -> Group:
+    ) -> dict:
         """
         Retrieves information about a group by its ID.
         
@@ -121,7 +119,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Group(**response.json())
         except requests.RequestException as error:
@@ -129,7 +127,7 @@ class Groups:
 
     def groups(
         self, query_params: PageMetadata, domain_id: str, token: str
-    ) -> GroupsPage:
+    ) -> dict:
         """
         Retrieves a list of groups with pagination support.
         
@@ -163,13 +161,13 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return GroupsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_group(self, group: Group, domain_id: str, token: str) -> Group:
+    def update_group(self, group: Group, domain_id: str, token: str) -> dict:
         """
         Updates the information of an existing group.
         
@@ -204,13 +202,13 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Group(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def enable_group(self, group_id: str, domain_id: str, token: str) -> Group:
+    def enable_group(self, group_id: str, domain_id: str, token: str) -> dict:
         """
         Enables a disabled group by its ID.
         
@@ -240,13 +238,13 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Group(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def disable_group(self, group_id: str, domain_id: str, token: str) -> Group:
+    def disable_group(self, group_id: str, domain_id: str, token: str) -> dict:
         """
         Disables an enabled group by its ID.
         
@@ -276,9 +274,9 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Group(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -312,7 +310,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -327,7 +325,7 @@ class Groups:
         domain_id: str,
         query_params: HierarchyPageMeta,
         token: str
-    ) -> HierarchyPage:
+    ) -> dict:
         """
         Retrieves the hierarchical structure of a group, including its parents and children.
         
@@ -362,9 +360,9 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return HierarchyPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -406,7 +404,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -447,7 +445,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -494,7 +492,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -541,7 +539,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -582,7 +580,7 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -593,7 +591,7 @@ class Groups:
 
     def list_children_groups(
         self, group_id: str, domain_id: str, query_params: PageMetadata, token: str
-    ) -> GroupsPage:
+    ) -> dict:
         """
         Retrieves a paginated list of a group's child groups.
         
@@ -628,13 +626,13 @@ class Groups:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return GroupsPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def list_group_actions(self, domain_id: str, token: str) -> List[str]:
+    def list_group_actions(self, domain_id: str, token: str) -> dict:
         """
         Lists all available actions for groups within a specified domain.
         
@@ -666,7 +664,7 @@ class Groups:
         token: str,
         optional_actions: Optional[List[str]] = None,
         optional_members: Optional[List[str]] = None
-    ) -> Role:
+    ) -> dict:
         """
         Creates a new role within a specific group and domain, with optional actions and members.
         
@@ -700,7 +698,7 @@ class Groups:
 
     def list_group_roles(
         self, group_id: str, domain_id: str, query_params: PageMetadata, token: str
-    ) -> RolePage:
+    ) -> dict:
         """
         Retrieves a paginated list of roles for a specific group within a domain.
         
@@ -730,7 +728,7 @@ class Groups:
 
     def view_group_role(
         self, group_id: str, domain_id: str, role_id: str, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Retrieves the details of a specific role within a group and domain.
         
@@ -760,7 +758,7 @@ class Groups:
 
     def update_group_role(
         self, group_id: str, domain_id: str, role_id: str, role: Role, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Updates an existing role within a group and domain.
         
@@ -822,7 +820,7 @@ class Groups:
 
     def add_group_role_actions(
         self, group_id: str, domain_id: str, role_id: str, actions: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds actions to a specific role within a group and domain.
         
@@ -854,7 +852,7 @@ class Groups:
 
     def list_group_role_actions(
         self, group_id: str, domain_id: str, role_id: str, token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Lists all actions associated with a specific role within a group and domain.
         
@@ -946,7 +944,7 @@ class Groups:
 
     def add_group_role_members(
         self, group_id: str, domain_id: str, role_id: str, members: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds members to a specific role within a group and domain.
         
@@ -983,7 +981,7 @@ class Groups:
         role_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MembersPage:
+    ) -> dict:
         """
         Lists all members associated with a specific role within a group and domain.
         
@@ -1081,7 +1079,7 @@ class Groups:
         domain_id: str,
         query_params: BasicPageMeta,
         token: str
-    ) -> MemberRolesPage:
+    ) -> dict:
         """
         Lists all members associated with a group.
         

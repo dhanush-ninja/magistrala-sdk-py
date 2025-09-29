@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
@@ -16,7 +14,7 @@ from .defs import (
     MembersRolePageQuery,
     MemberRolesPage,
 )
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class Roles:
@@ -57,7 +55,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             actions_response = response.json()
             return actions_response.get("available_actions", [])
@@ -73,7 +71,7 @@ class Roles:
         token: str,
         optional_actions: Optional[List[str]] = None,
         optional_members: Optional[List[str]] = None
-    ) -> Role:
+    ) -> dict:
         """
         Creates a new role for an entity.
         
@@ -115,15 +113,14 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return Role(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_roles(
-        self, url: str, endpoint: str, entity_id: str, query_params: PageMetadata, token: str
-    ) -> RolePage:
+        self, url: str, endpoint: str, entity_id: str, token: str) -> dict:
         """
         Lists all roles for an entity with pagination.
         
@@ -140,11 +137,6 @@ class Roles:
         Raises:
             Exception: If the roles cannot be retrieved.
         """
-        string_params = {
-            key: str(value) for key, value in query_params.__dict__.items()
-            if value is not None
-        }
-
         headers = {
             "Content-Type": self.content_type,
             "Authorization": f"Bearer {token}",
@@ -152,7 +144,7 @@ class Roles:
 
         full_url = urljoin(
             url + '/',
-            f"{endpoint}/{entity_id}/roles?{urlencode(string_params)}"
+            f"{endpoint}/{entity_id}/roles"
         )
         
         try:
@@ -160,15 +152,15 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return RolePage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def view_role(
         self, url: str, endpoint: str, entity_id: str, role_id: str, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Retrieves details of a specific role.
         
@@ -197,15 +189,15 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Role(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_role(
         self, url: str, endpoint: str, entity_id: str, role_id: str, role: Role, token: str
-    ) -> Role:
+    ) -> dict:
         """
         Updates an existing role.
         
@@ -240,9 +232,9 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Role(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -277,7 +269,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -288,7 +280,7 @@ class Roles:
 
     def add_role_actions(
         self, url: str, endpoint: str, entity_id: str, role_id: str, actions: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds actions to a role.
         
@@ -323,16 +315,15 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            add_action_response = response.json()
-            return add_action_response.get("actions", [])
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_role_actions(
         self, url: str, endpoint: str, entity_id: str, role_id: str, token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Lists all actions associated with a role.
         
@@ -361,10 +352,9 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            actions_response = response.json()
-            return actions_response.get("actions", [])
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -405,7 +395,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -445,7 +435,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -456,7 +446,7 @@ class Roles:
 
     def add_role_members(
         self, url: str, endpoint: str, entity_id: str, role_id: str, members: List[str], token: str
-    ) -> List[str]:
+    ) -> dict:
         """
         Adds members to a role.
         
@@ -491,16 +481,14 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            add_members_response = response.json()
-            return add_members_response.get("members", [])
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_role_members(
-        self, url: str, endpoint: str, entity_id: str, role_id: str, query_params: BasicPageMeta, token: str
-    ):
+        self, url: str, endpoint: str, entity_id: str, role_id: str, query_params: BasicPageMeta, token: str) -> dict:
         """
         Lists all members associated with a role.
         
@@ -538,7 +526,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return response.json()
         except requests.RequestException as error:
@@ -570,7 +558,6 @@ class Roles:
         }
 
         full_url = urljoin(url + '/', f"{endpoint}/{entity_id}/roles/{role_id}/members/delete")
-        
         try:
             response = requests.post(
                 full_url,
@@ -581,7 +568,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -621,7 +608,7 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -631,8 +618,8 @@ class Roles:
             raise error
 
     def list_entity_members(
-        self, url: str, endpoint: str, entity_id: str, query_params: MembersRolePageQuery, token: str
-    ) -> MemberRolesPage:
+        self, url: str, endpoint: str, entity_id: str, token: str
+    ) -> dict:
         """
         Lists all members associated with an entity across all roles.
         
@@ -654,14 +641,10 @@ class Roles:
             "Authorization": f"Bearer {token}",
         }
 
-        string_params = {
-            key: str(value) for key, value in query_params.__dict__.items()
-            if value is not None
-        }
 
         full_url = urljoin(
             url + '/',
-            f"{endpoint}/{entity_id}/roles/members?{urlencode(string_params)}"
+            f"{endpoint}/{entity_id}/roles/members"
         )
         
         try:
@@ -669,8 +652,8 @@ class Roles:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return MemberRolesPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error

@@ -1,12 +1,9 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
-
 import json
 from urllib.parse import urljoin
 
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import Cert, CertsPage, Response
 
 
@@ -28,7 +25,7 @@ class Certs:
 
     def issue_cert(
         self, client_id: str, valid: str, domain_id: str, token: str
-    ) -> Cert:
+    ) -> dict:
         """
         Issues a certificate to a client.
         
@@ -67,14 +64,14 @@ class Certs:
             if not response.ok:
                 error_res = response.json()
                 raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Cert(**response.json())
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def view_cert_by_client(
         self, client_id: str, domain_id: str, token: str
-    ) -> CertsPage:
+    ) -> dict:
         """
         Retrieves all certs matching the provided client ID.
         
@@ -102,12 +99,12 @@ class Certs:
             if not response.ok:
                 error_res = response.json()
                 raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return CertsPage(**response.json())
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def view_cert(self, cert_id: str, domain_id: str, token: str) -> Cert:
+    def view_cert(self, cert_id: str, domain_id: str, token: str) -> dict:
         """
         Retrieves a certificate by its id.
         
@@ -138,8 +135,8 @@ class Certs:
             if not response.ok:
                 error_res = response.json()
                 raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Cert(**response.json())
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 

@@ -19,10 +19,11 @@ class UserBasicInfo:
 class User(UserBasicInfo):
     role: Optional[str] = 'user'
     tags: Optional[List[str]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     updated_by: Optional[Union[str, UserBasicInfo]] = None
+    verified_at: Optional[datetime] = None
     permissions: Optional[List[str]] = None
 
 
@@ -51,7 +52,7 @@ class ClientBasicInfo:
     id: Optional[str] = None
     name: Optional[str] = None
     credentials: Optional[ClientCredentials] = None
-    status: Optional['Status'] = None
+    status: Optional[str] = 'enabled'
 
 
 QueryParamRoles = "roles"
@@ -66,19 +67,18 @@ class Client(ClientBasicInfo):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     updated_by: Optional[Union[str, UserBasicInfo]] = None
-    identity: Optional[str] = None
-    parent_group_path: Optional[str] = None
-    role_id: Optional[str] = None
-    role_name: Optional[str] = None
-    actions: Optional[List[str]] = None
-    access_type: Optional[str] = None
-    access_provider_id: Optional[str] = None
-    access_provider_role_id: Optional[str] = None
-    access_provider_role_name: Optional[str] = None
-    access_provider_role_actions: Optional[List[str]] = None
-    connection_types: Optional[List[str]] = None
-    member_id: Optional[str] = None
-    roles: Optional[List['MemberRoleActions']] = None
+    # parent_group_path: Optional[str] = None
+    # role_id: Optional[str] = None
+    # role_name: Optional[str] = None
+    # actions: Optional[List[str]] = None
+    # access_type: Optional[str] = None
+    # access_provider_id: Optional[str] = None
+    # access_provider_role_id: Optional[str] = None
+    # access_provider_role_name: Optional[str] = None
+    # access_provider_role_actions: Optional[List[str]] = None
+    # connection_types: Optional[List[str]] = None
+    # member_id: Optional[str] = None
+    # roles: Optional[List['MemberRoleActions']] = None
 
 
 @dataclass
@@ -146,31 +146,17 @@ class HierarchyPage(HierarchyPageMeta):
 class ChannelBasicInfo:
     id: Optional[str] = None
     name: Optional[str] = None
-    status: Optional['Status'] = None
+    description: Optional[str] = None
+    status: Optional['Status'] = 'enabled'
 
 
 @dataclass
 class Channel(ChannelBasicInfo):
-    domain_id: Optional[Union[str, 'DomainBasicInfo']] = None
+    domain_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    tags: Optional[List[str]] = None
-    parent_group_id: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     updated_by: Optional[str] = None
-    parent_group_path: Optional[str] = None
-    role_id: Optional[str] = None
-    role_name: Optional[str] = None
-    actions: Optional[List[str]] = None
-    access_type: Optional[str] = None
-    access_provider_id: Optional[str] = None
-    access_provider_role_id: Optional[str] = None
-    access_provider_role_name: Optional[str] = None
-    access_provider_role_actions: Optional[List[str]] = None
-    connection_types: Optional[List[str]] = None
-    member_id: Optional[str] = None
-    roles: Optional[List['MemberRoleActions']] = None
-    route: Optional[str] = None
 
 
 @dataclass
@@ -199,7 +185,7 @@ class DomainBasicInfo:
     id: Optional[str] = None
     name: Optional[str] = None
     route: Optional[str] = None
-    status: Optional['Status'] = None
+    status: Optional['Status'] = 'enabled'
 
 
 @dataclass
@@ -313,6 +299,7 @@ class PageMetadata(BasicPageMeta):
     channel: Optional[str] = None
     connection_type: Optional[str] = None
     root_group: Optional[bool] = None
+    verified: Optional[bool] = None
 
 
 @dataclass

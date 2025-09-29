@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from urllib.parse import urljoin, urlencode
@@ -15,7 +13,7 @@ from .defs import (
     Schedule,
     Template,
 )
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class Reports:
@@ -38,7 +36,7 @@ class Reports:
 
     def generate_report(
         self, domain_id: str, report_config: ReportConfig, token: str
-    ) -> ReportPage:
+    ) -> dict:
         """
         Generates a report using a provided report configuration.
         
@@ -70,15 +68,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ReportPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def add_report_config(
         self, domain_id: str, report_config: ReportConfig, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Adds a new report configuration.
         
@@ -113,15 +111,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ReportConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def view_report_config(
         self, domain_id: str, config_id: str, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Retrieves a report configuration by ID.
         
@@ -151,15 +149,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ReportConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list_report_configs(
         self, domain_id: str, query_params: RulesPageMetadata, token: str
-    ) -> ReportConfigPage:
+    ) -> dict:
         """
         Lists report configurations with optional query parameters.
         
@@ -194,15 +192,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return ReportConfigPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_report_config(
         self, domain_id: str, config: ReportConfig, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Updates an existing report configuration.
         
@@ -237,15 +235,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ReportConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_report_schedule(
         self, domain_id: str, config_id: str, schedule: Schedule, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Updates an existing report schedule.
         
@@ -283,9 +281,9 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ReportConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -321,7 +319,7 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -332,7 +330,7 @@ class Reports:
 
     def enable_report_config(
         self, domain_id: str, config_id: str, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Enables a report configuration.
         
@@ -362,15 +360,15 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ReportConfig(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def disable_report_config(
         self, domain_id: str, config_id: str, token: str
-    ) -> ReportConfig:
+    ) -> dict:
         """
         Disables a report configuration.
         
@@ -400,7 +398,7 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return ReportConfig(**response.json())
         except requests.RequestException as error:
@@ -441,13 +439,13 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
         except requests.RequestException as error:
             raise error
 
     def view_report_template(
         self, domain_id: str, report_id: str, token: str
-    ) -> Template:
+    ) -> dict:
         """
         Views report template.
         
@@ -477,9 +475,9 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Template(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -512,6 +510,6 @@ class Reports:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
         except requests.RequestException as error:
             raise error

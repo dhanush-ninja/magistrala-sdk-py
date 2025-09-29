@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List
@@ -8,7 +6,7 @@ from urllib.parse import urljoin, urlencode
 import requests
 
 from .defs import Rule, RulesPage, RulesPageMetadata, Response, Schedule
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class Rules:
@@ -27,7 +25,7 @@ class Rules:
         self.content_type = "application/json"
         self.rules_endpoint = "rules"
 
-    def create(self, domain_id: str, rule: Rule, token: str) -> Rule:
+    def create(self, domain_id: str, rule: Rule, token: str) -> dict:
         """
         Creates a new rule.
         
@@ -59,13 +57,13 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def view(self, domain_id: str, rule_id: str, token: str) -> Rule:
+    def view(self, domain_id: str, rule_id: str, token: str) -> dict:
         """
         Retrieves a rule by its id.
         
@@ -95,15 +93,14 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def list(
         self, domain_id: str, query_params: RulesPageMetadata, token: str
-    ) -> RulesPage:
+    ) -> dict:
         """
         Retrieves all rules matching the provided query parameters.
         
@@ -137,13 +134,13 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
-            return RulesPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update(self, domain_id: str, rule: Rule, token: str) -> Rule:
+    def update(self, domain_id: str, rule: Rule, token: str) -> dict:
         """
         Updates an existing rule.
         
@@ -178,15 +175,15 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_tags(
         self, domain_id: str, rule_id: str, tags: List[str], token: str
-    ) -> Rule:
+    ) -> dict:
         """
         Updates an existing rule's tags.
         
@@ -222,15 +219,15 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
     def update_schedule(
         self, domain_id: str, rule_id: str, schedule: Schedule, token: str
-    ) -> Rule:
+    ) -> dict:
         """
         Updates the schedule for a specific rule.
         
@@ -268,9 +265,9 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -304,7 +301,7 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -313,7 +310,7 @@ class Rules:
         except requests.RequestException as error:
             raise error
 
-    def enable(self, domain_id: str, rule_id: str, token: str) -> Rule:
+    def enable(self, domain_id: str, rule_id: str, token: str) -> dict:
         """
         Enables a previously disabled rule.
         
@@ -343,13 +340,13 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def disable(self, domain_id: str, rule_id: str, token: str) -> Rule:
+    def disable(self, domain_id: str, rule_id: str, token: str) -> dict:
         """
         Disables a specific rule.
         
@@ -379,8 +376,8 @@ class Rules:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return Rule(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error

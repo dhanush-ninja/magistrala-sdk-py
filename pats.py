@@ -1,5 +1,3 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
 
 import json
 from typing import List, Optional
@@ -8,7 +6,7 @@ from urllib.parse import urljoin, urlencode
 import requests
 
 from .defs import PAT, PatPageMeta, PATsPage, Response, Scope, ScopesPage, ScopesPageMeta
-from .errors import Errors
+from src.magistrala.errors import Errors
 
 
 class PATs:
@@ -29,7 +27,7 @@ class PATs:
 
     def create_pat(
         self, name: str, duration: str, token: str, description: Optional[str] = None
-    ) -> PAT:
+    ) -> dict:
         """
         Creates a new Personal Access Token (PAT).
         
@@ -68,13 +66,13 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PAT(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def list_pats(self, query_params: PatPageMeta, token: str) -> PATsPage:
+    def list_pats(self, query_params: PatPageMeta, token: str) -> dict:
         """
         Retrieves all Personal Access Tokens (PATs) matching the provided query parameters.
         
@@ -108,13 +106,13 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PATsPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def view_pat(self, pat_id: str, token: str) -> PAT:
+    def view_pat(self, pat_id: str, token: str) -> dict:
         """
         Retrieves a Personal Access Token (PAT) by its ID.
         
@@ -140,9 +138,9 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PAT(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -171,7 +169,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -180,7 +178,7 @@ class PATs:
         except requests.RequestException as error:
             raise error
 
-    def update_name(self, name: str, pat_id: str, token: str) -> PAT:
+    def update_name(self, name: str, pat_id: str, token: str) -> dict:
         """
         Updates the name of a Personal Access Token (PAT).
         
@@ -212,13 +210,13 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PAT(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update_description(self, description: str, pat_id: str, token: str) -> PAT:
+    def update_description(self, description: str, pat_id: str, token: str) -> dict:
         """
         Updates the description of a Personal Access Token (PAT).
         
@@ -250,9 +248,9 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PAT(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -282,7 +280,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -291,7 +289,7 @@ class PATs:
         except requests.RequestException as error:
             raise error
 
-    def reset_secret(self, duration: str, pat_id: str, token: str) -> PAT:
+    def reset_secret(self, duration: str, pat_id: str, token: str) -> dict:
         """
         Resets the secret for a Personal Access Token (PAT).
         
@@ -323,9 +321,9 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return PAT(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -355,7 +353,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -402,7 +400,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -413,7 +411,7 @@ class PATs:
 
     def list_scopes(
         self, pat_id: str, query_params: ScopesPageMeta, token: str
-    ) -> ScopesPage:
+    ) -> dict:
         """
         Retrieves all scopes associated with a given PAT.
         
@@ -448,9 +446,9 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
-            
-            return ScopesPage(**response.json())
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
+
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -486,7 +484,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,
@@ -521,7 +519,7 @@ class PATs:
             
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
             
             return Response(
                 status=response.status_code,

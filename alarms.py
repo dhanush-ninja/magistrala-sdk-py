@@ -1,12 +1,9 @@
-# Copyright (c) Abstract Machines
-# SPDX-License-Identifier: Apache-2.0
-
 import json
 from urllib.parse import urljoin, urlencode
 
 import requests
 
-from .errors import Errors
+from src.magistrala.errors import Errors
 from .defs import Alarm, AlarmPageMeta, AlarmsPage, Response
 
 
@@ -28,7 +25,7 @@ class Alarms:
 
     def list(
         self, domain_id: str, query_params: AlarmPageMeta, token: str
-    ) -> AlarmsPage:
+    ) -> dict:
         """
         Lists all alarms within a domain, with optional pagination/filtering.
         
@@ -63,13 +60,13 @@ class Alarms:
 
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
 
-            return AlarmsPage(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def view(self, domain_id: str, alarm_id: str, token: str) -> Alarm:
+    def view(self, domain_id: str, alarm_id: str, token: str) -> dict:
         """
         Retrieves a single alarm by ID.
         
@@ -99,13 +96,13 @@ class Alarms:
 
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
 
-            return Alarm(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
-    def update(self, domain_id: str, alarm: Alarm, token: str) -> Alarm:
+    def update(self, domain_id: str, alarm: Alarm, token: str) -> dict:
         """
         Updates an existing alarm.
         
@@ -140,9 +137,9 @@ class Alarms:
 
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
 
-            return Alarm(**response.json())
+            return response.json()
         except requests.RequestException as error:
             raise error
 
@@ -176,7 +173,7 @@ class Alarms:
 
             if not response.ok:
                 error_res = response.json()
-                raise Errors.handle_error(error_res.get("message"), response.status_code)
+                raise Errors.handle_error(error_res.get("message"), response.status_code, error_res.get("error"))
 
             return Response(
                 status=response.status_code,
