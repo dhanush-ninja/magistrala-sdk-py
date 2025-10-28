@@ -78,9 +78,16 @@ class Messages:
         self,
         domain_id: str,
         channel_id: str,
-        pm: MessagesPageMetadata,
-        token: str
+        client_id: str,
+        protocol: str,
+        from_timestamp: int,
+        to_timestamp: int,
+        token: str,
+        offset: int = 0,
+        limit: int = 10,
+        
     ) -> dict:
+        # pm: MessagesPageMetadata,
         """
         Read messages from a given channel.
         
@@ -96,10 +103,6 @@ class Messages:
         Raises:
             Exception: If the messages cannot be fetched.
         """
-        string_params = {
-            key: str(value) for key, value in pm.__dict__.items()
-            if value is not None
-        }
         
         chan_name_parts = channel_id.split(".", 2)
         chan_id = chan_name_parts[0]
@@ -115,7 +118,7 @@ class Messages:
 
         url = urljoin(
             self.readers_url + '/',
-            f"{domain_id}/channels/{chan_id}/messages{subtopic_part}?{urlencode(string_params)}"
+            f"{domain_id}/channels/{chan_id}/messages{subtopic_part}?offset={offset}&limit={limit}&publisher={client_id}&protocol={protocol}&from={from_timestamp}&to={to_timestamp}"
         )
         
         try:

@@ -396,9 +396,9 @@ class Channels:
         self,
         client_ids: List[str],
         channel_id: str,
-        connection_types: List[str],
         domain_id: str,
-        token: str
+        token: str,
+        connection_types: List[str] = ["publish", "subscribe"]
     ) -> Response:
         """
         Connects multiple clients to a channel.

@@ -366,7 +366,7 @@ class Clients:
         except requests.RequestException as error:
             raise error
 
-    def clients(self, domain_id: str, limit: int, offset: int, token: str) -> dict:
+    def clients(self, domain_id: str, limit: int, offset: int, token: str, metadata: Optional[str] = None) -> dict:
         """
         Retrieves all clients matching the provided query parameters.
         
@@ -391,7 +391,10 @@ class Clients:
             self.clients_url + '/',
             f"{domain_id}/{self.clients_endpoint}?limit={limit}&offset={offset}"
         )
-        
+
+        if metadata:
+            url += f"&metadata={metadata}"
+
         try:
             response = requests.get(url, headers=headers, timeout=30)
             
@@ -404,7 +407,7 @@ class Clients:
             raise error
 
 
-    def list_user_clients(self, domain_id: str, user_id: str, limit: int, offset: int, token: str) -> dict:
+    def list_user_clients(self, domain_id: str, user_id: str, limit: int, token: str) -> dict:
         """
         Get memberships of a user.
         
@@ -427,7 +430,7 @@ class Clients:
 
         url = urljoin(
             self.clients_url + '/',
-            f"{domain_id}/{self.clients_endpoint}?user={user_id}&offset={offset}&limit={limit}"
+            f"{domain_id}/{self.clients_endpoint}?user={user_id}&limit={limit}"
         )
         
         try:
@@ -1012,7 +1015,6 @@ class Clients:
         self,
         client_id: str,
         domain_id: str,
-        query_params: BasicPageMeta,
         token: str
     ) -> dict:
         """
@@ -1034,7 +1036,6 @@ class Clients:
                 self.clients_url,
                 f"{domain_id}/{self.clients_endpoint}",
                 client_id,
-                query_params,
                 token
             )
             return members
